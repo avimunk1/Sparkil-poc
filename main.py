@@ -14,7 +14,7 @@ def prepareMessages(fileName):
         fileData = file.read()
         return fileData
 
-class EmailBody(BaseModel):
+class EmailOutput(BaseModel):
     emailSubject: str
     messageText: str
     isReliable: bool
@@ -23,7 +23,7 @@ def main():
     try:
         systemContent = prepareMessages("systemInstructions.txt")
         userContent = prepareMessages("inputData.txt")
-        questionsAndAnswers = prepareMessages("../InputFiles/Questionandanswers.txt")
+        questionsAndAnswers = prepareMessages("../InputFiles/Questionandanswers_1.txt")
         userContent = userContent + questionsAndAnswers
 
 
@@ -33,7 +33,7 @@ def main():
                 {"role": "system", "content": systemContent},
                 {"role": "user", "content": userContent},
             ],
-            response_format=EmailBody,
+            response_format=EmailOutput,
         )
 
         emailText = completion.choices[0].message.parsed
