@@ -22,7 +22,7 @@ class EmailOutput(BaseModel):
 def main():
     try:
         systemContent = prepareMessages("systemInstructions.txt")
-        userContent = prepareMessages("inputData.txt")
+        userContent = prepareMessages("../InputFiles/inputData.txt")
         questionsAndAnswers = prepareMessages("../InputFiles/Questionandanswers_1.txt")
         userContent = userContent + questionsAndAnswers
 

@@ -20,6 +20,7 @@ class EmailOutput(BaseModel):
     emailSubject: str
     messageText: str
     isReliable: bool
+    isTooSad: bool
     businessName: str
 
 
@@ -48,7 +49,8 @@ def save_to_rtf(emailText: EmailOutput, questionsAndAnswers: str, userContent: s
         "\\b Status: Email Output\\b0\\par\n"
         f"\\b Email Subject:\\b0 {emailText.emailSubject}\\par\\n\n"
         f"\\b Message Text:\\b0 {emailText.messageText}\\par\\n\n"
-        f"\\b Is Reliable:\\b0 {emailText.isReliable}\\par\\n\n"
+        f"\\b Is Reliable?:\\b0 {emailText.isReliable}\\par\\n\n"
+        f"\\b is pessimistic?:\\b0 {emailText.isTooSad}\\par\\n\n"
         f"\\b Business Name:\\b0 {emailText.businessName}\\par\\n\n"
         "\\b Inputs\\b0\\par\n"
         f"\\b Questions and Answers:\\b0\\par {questionsAndAnswers_encoded}\\par\\n\n"
@@ -64,8 +66,8 @@ def save_to_rtf(emailText: EmailOutput, questionsAndAnswers: str, userContent: s
 def main():
     try:
         systemContent = prepareMessages("systemInstructions.txt")
-        userContent = prepareMessages("inputData.txt")
-        questionsAndAnswers = prepareMessages("../InputFiles/Questionandanswers_1.txt")
+        userContent = prepareMessages("../InputFiles/inputData-Boaz-Chinese_Medicine.txt")
+        questionsAndAnswers = prepareMessages("../InputFiles/Questionandanswers-empty.txt")
         userContent = userContent + questionsAndAnswers
 
         completion = client.beta.chat.completions.parse(
@@ -82,6 +84,7 @@ def main():
         #print("Email Subject:", emailText.emailSubject)
         #print("Message Text:", emailText.messageText)
         print("Is Reliable:", emailText.isReliable)
+        print("Is Too Sad:", emailText.isTooSad)
         print("Business Name:", emailText.businessName)
 
         # Save the output to an RTF file with additional content
