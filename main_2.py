@@ -62,8 +62,26 @@ def save_to_rtf(emailText: EmailOutput, questionsAndAnswers: str, userContent: s
     with open(file_name, "w", encoding="utf-8") as rtf_file:
         rtf_file.write(rtf_content)
 
+def get_openai_api_key():
+    # Check if the API key exists in the environment variables
+    openai_api_key = os.getenv("OPENAI_API_KEY")
+
+    if not openai_api_key:
+        # Prompt the user to input the API key
+        print("OpenAI API key not found in environment variables.")
+        openai_api_key = input("Please enter your OpenAI API key: ")
+
+        if openai_api_key:
+            # Optionally, save the key to the environment variables for future use
+            os.environ["OPENAI_API_KEY"] = openai_api_key
+        else:
+            raise ValueError("OpenAI API key is required to proceed.")
+
+    return openai_api_key
+
 
 def main():
+    openai_api_key = get_openai_api_key()
     try:
         systemContent = prepareMessages("systemInstructions.txt")
         userContent = prepareMessages("../InputFiles/inputData-Boaz-Chinese_Medicine.txt")
