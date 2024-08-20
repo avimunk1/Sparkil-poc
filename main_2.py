@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from openai import OpenAI
 import os
 from datetime import datetime
+from validator import mailVerifed
 
 systemContent = ""
 userContent = ""
@@ -85,7 +86,7 @@ def main():
     try:
         systemContent = prepareMessages("systemInstructions.txt")
         userContent = prepareMessages("../InputFiles/inputData-Boaz-Chinese_Medicine.txt")
-        questionsAndAnswers = prepareMessages("../InputFiles/Questionandanswers-empty.txt")
+        questionsAndAnswers = prepareMessages("../InputFiles/Questionandanswers-boaz.txt")
         userContent = userContent + questionsAndAnswers
 
         completion = client.beta.chat.completions.parse(
@@ -99,18 +100,20 @@ def main():
 
         emailText = completion.choices[0].message.parsed
 
-        #print("Email Subject:", emailText.emailSubject)
-        #print("Message Text:", emailText.messageText)
         print("Is Reliable:", emailText.isReliable)
         print("Is Too Sad:", emailText.isTooSad)
         print("Business Name:", emailText.businessName)
 
         # Save the output to an RTF file with additional content
         save_to_rtf(emailText, questionsAndAnswers, userContent)
+        #call the mailVerified function
+        verify = mailVerifed(questionsAndAnswers, emailText.messageText)
+        print("this is the verification", verify.isVerified)
+        if not verify.isVerified:(print("this is the issue", verify.issueDesc))
 
     except Exception as e:
         print(e)
-        print("Failed to get response")
+        print("Failed to get response to create email output", e)
 
 
 if __name__ == "__main__":

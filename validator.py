@@ -1,56 +1,35 @@
 from pydantic import BaseModel
+import openai
 from openai import OpenAI
 import os
-
-#print(os.getenv("OPENAI_API_KEY"))
-systemContent=""
-userContent=""
-questionsAndAnswers = ""
 client = OpenAI()
+questionsAndAnswers = "question: how are you doing recently? answer: I am doing well"
+message = "I am writing to update that i'm doing well"
 
-def prepareMessages(fileName):
-    # Read system instructions from a file
-    with open(fileName, "r") as file:
-        fileData = file.read()
-        return fileData
+class mailresults(BaseModel):
+    issueDesc: str
+    isVerified: bool
+def mailVerifed(Questions_and_Answers, emailmessage):
 
-class EmailOutput(BaseModel):
-    emailSubject: str
-    messageText: str
-    isReliable: bool
-    businessName: str
-def main():
     try:
-        systemContent = prepareMessages("systemInstructions.txt")
-        userContent = prepareMessages("../InputFiles/inputData.txt")
-        questionsAndAnswers = prepareMessages("../InputFiles/Questionandanswers_1.txt")
-        userContent = userContent + questionsAndAnswers
+        systemContent = "you need to verify that the message papered is genearly reflacts the user answers in the question and answers. if yes set isVerified=True else set isVerified=False and issueDesc= the issue descrption, why it is incurrect"
 
+        Questions_and_Answers = Questions_and_Answers + emailmessage
 
         completion = client.beta.chat.completions.parse(
             model="gpt-4o-2024-08-06",
             messages=[
                 {"role": "system", "content": systemContent},
-                {"role": "user", "content": userContent},
+                {"role": "user", "content": Questions_and_Answers},
             ],
-            response_format=EmailOutput,
+            response_format=mailresults,
         )
-
         emailText = completion.choices[0].message.parsed
-
-        print("Email Subject:", emailText.emailSubject)
-        print("Message Text:", emailText.messageText)
-        print("Is Reliable:", emailText.isReliable)
-        print("Business Name:", emailText.businessName)
-
         #print(emailText)
-        #print(completion.choices[0].message.parsed.dict())
+        return mailresults(issueDesc=emailText.issueDesc, isVerified=emailText.isVerified)
+
     except Exception as e:
         print(e)
-        print("failed to get response")
+        print("failed to get response for validation",e)
         pass
 
-
-
-if __name__ == "__main__":
-    main()
