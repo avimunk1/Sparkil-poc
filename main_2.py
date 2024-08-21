@@ -1,7 +1,12 @@
+from enum import verify
+
 from pydantic import BaseModel
 from openai import OpenAI
 import os
 from datetime import datetime
+
+from pydantic.networks import email_validator
+
 from validator import mailVerifed
 
 systemContent = ""
@@ -35,7 +40,7 @@ def encode_to_rtf(text: str) -> str:
     return encoded_text
 
 
-def save_to_rtf(emailText: EmailOutput, questionsAndAnswers: str, userContent: str):
+def save_to_rtf(emailText: EmailOutput, questionsAndAnswers: str, userContent: str, ex_verify, issue_desc):
     # Create the filename using business name and current date/time
     current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
     file_name = f"../outputFiles/{emailText.businessName}_{current_time}.rtf"
@@ -47,15 +52,23 @@ def save_to_rtf(emailText: EmailOutput, questionsAndAnswers: str, userContent: s
     # Create RTF content
     rtf_content = (
         "{\\rtf1\\ansi\\deff0\n"
-        "\\b Status: Email Output\\b0\\par\n"
-        f"\\b Email Subject:\\b0 {emailText.emailSubject}\\par\\n\n"
-        f"\\b Message Text:\\b0 {emailText.messageText}\\par\\n\n"
+        "\\b Email Output\\b0\\par\n"
+        "\\---\\b0\\par\n"
+        f"\\b Email Subject: \\b0 {emailText.emailSubject}\\par\\n\n"
+         "\\---\\b0\\par\n"
+        f"\\b Message Text: \\b0 {emailText.messageText}\\par\\n\n"
+         "\\---\\b0\\par\n"
         f"\\b Is Reliable?:\\b0 {emailText.isReliable}\\par\\n\n"
         f"\\b is pessimistic?:\\b0 {emailText.isTooSad}\\par\\n\n"
         f"\\b Business Name:\\b0 {emailText.businessName}\\par\\n\n"
         "\\b Inputs\\b0\\par\n"
-        f"\\b Questions and Answers:\\b0\\par {questionsAndAnswers_encoded}\\par\\n\n"
-        f"\\b User Content:\\b0\\par {userContent_encoded}\\par\n"
+        f"\\b Q&A: \\b0\\par {questionsAndAnswers_encoded}\\par\\n\n"
+          "\\---\\b0\\par\n"
+        f"\\b about the business:\\b0\\par {userContent_encoded}\\par\n"
+        "\\---\\b0\\par\n"
+        f"\\b 2nd verification results:\\b0\\par {ex_verify}\\par\n"
+        f"\\b 2nd verification issue description:\\b0\\par {issue_desc}\\par\n"
+        
         "}"
     )
 
@@ -85,8 +98,9 @@ def main():
     openai_api_key = get_openai_api_key()
     try:
         systemContent = prepareMessages("systemInstructions.txt")
-        userContent = prepareMessages("../InputFiles/inputData-Boaz-Chinese_Medicine.txt")
-        questionsAndAnswers = prepareMessages("../InputFiles/Questionandanswers-boaz.txt")
+        userContent = prepareMessages("../InputFiles/inputData-kids.txt")
+        aboutTheBusiness = userContent
+        questionsAndAnswers = prepareMessages("../InputFiles/Questionandanswers-kids3-unhappy.txt")
         userContent = userContent + questionsAndAnswers
 
         completion = client.beta.chat.completions.parse(
@@ -104,12 +118,15 @@ def main():
         print("Is Too Sad:", emailText.isTooSad)
         print("Business Name:", emailText.businessName)
 
-        # Save the output to an RTF file with additional content
-        save_to_rtf(emailText, questionsAndAnswers, userContent)
+
         #call the mailVerified function
-        verify = mailVerifed(questionsAndAnswers, emailText.messageText)
-        print("this is the verification", verify.isVerified)
-        if not verify.isVerified:(print("this is the issue", verify.issueDesc))
+        email_verified = mailVerifed(questionsAndAnswers, emailText.messageText)
+        print("2nd verification:", email_verified.isVerified)
+        if not email_verified.isVerified:(print("this is the issue", email_verified.issueDesc))
+        # Save the output to an RTF file with additional content
+        ex_verification=email_verified.isVerified
+        verification_desc= email_verified.issueDesc
+        save_to_rtf(emailText, questionsAndAnswers, aboutTheBusiness,ex_verification,verification_desc)
 
     except Exception as e:
         print(e)

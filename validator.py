@@ -12,7 +12,7 @@ class mailresults(BaseModel):
 def mailVerifed(Questions_and_Answers, emailmessage):
 
     try:
-        systemContent = "you need to verify that the message papered is genearly reflacts the user answers in the question and answers. if yes set isVerified=True else set isVerified=False and issueDesc= the issue descrption, why it is incurrect"
+        systemContent = "You need to verify that the emailmessage generally reflects the user's answers in the questions and answers. If it does, set isVerified=True. If it does not, set isVerified=False and provide issueDesc with a description of why the message is incorrect"
 
         Questions_and_Answers = Questions_and_Answers + emailmessage
 
